@@ -562,7 +562,9 @@ class GitGraphView {
 			options.push({ name: 'Glob: ' + this.config.customBranchGlobPatterns[i].name, value: this.config.customBranchGlobPatterns[i].glob });
 		}
 		for (let i = 0; i < this.gitBranches.length; i++) {
-			options.push({ name: this.gitBranches[i].indexOf('remotes/') === 0 ? this.gitBranches[i].substring(8) : this.gitBranches[i], value: this.gitBranches[i] });
+			if (!this.gitBranches[i].includes('archived')) {
+				options.push({ name: this.gitBranches[i].indexOf('remotes/') === 0 ? this.gitBranches[i].substring(8) : this.gitBranches[i], value: this.gitBranches[i] });
+			}
 		}
 		return options;
 	}

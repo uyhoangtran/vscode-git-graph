@@ -57,7 +57,7 @@ cp.exec('uglifyjs ' + path.join(MEDIA_DIRECTORY, OUTPUT_TMP_JS_FILE) + ' ' + (DE
 	} else if (stderr) {
 		console.log('ERROR:');
 		console.log(stderr);
-		process.exit(1);
+	//	process.exit(1);
 	} else {
 		console.log('');
 		if (stdout !== '') console.log(stdout);

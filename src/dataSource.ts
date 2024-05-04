@@ -163,8 +163,14 @@ export class DataSource extends Disposable {
 	 */
 	public getCommits(repo: string, branches: ReadonlyArray<string> | null, authors: ReadonlyArray<string> | null, maxCommits: number, showTags: boolean, showRemoteBranches: boolean, includeCommitsMentionedByReflogs: boolean, onlyFollowFirstParent: boolean, commitOrdering: CommitOrdering, remotes: ReadonlyArray<string>, hideRemotes: ReadonlyArray<string>, stashes: ReadonlyArray<GitStash>): Promise<GitCommitData> {
 		const config = getConfig();
+		let filtered_branches: Array<string> | null;
+		if ( branches !== null ) {
+			filtered_branches = branches.filter(branch => !branch.includes('archived'));
+		} else {
+			filtered_branches = null;
+		}
 		return Promise.all([
-			this.getLog(repo, branches, authors, maxCommits + 1, showTags && config.showCommitsOnlyReferencedByTags, showRemoteBranches, includeCommitsMentionedByReflogs, onlyFollowFirstParent, commitOrdering, remotes, hideRemotes, stashes),
+			this.getLog(repo, filtered_branches, authors, maxCommits + 1, showTags && config.showCommitsOnlyReferencedByTags, showRemoteBranches, includeCommitsMentionedByReflogs, onlyFollowFirstParent, commitOrdering, remotes, hideRemotes, stashes),
 			this.getRefs(repo, showRemoteBranches, config.showRemoteHeads, hideRemotes).then((refData: GitRefData) => refData, (errorMessage: string) => errorMessage)
 		]).then(async (results) => {
 			let commits: GitCommitRecord[] = results[0], refData: GitRefData | string = results[1], i;
@@ -1559,10 +1565,12 @@ export class DataSource extends Disposable {
 			}
 		} else {
 			// Show All
+			args.push('--exclude=archived/**');
 			args.push('--branches');
 			if (includeTags) args.push('--tags');
 			if (includeCommitsMentionedByReflogs) args.push('--reflog');
 			if (includeRemotes) {
+				args.push('--exclude=*/archived/**');
 				if (hideRemotes.length === 0) {
 					args.push('--remotes');
 				} else {
