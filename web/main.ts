@@ -55,6 +55,7 @@ class GitGraphView {
 	private tableColHeadersElem: HTMLElement | null;
 	private readonly footerElem: HTMLElement;
 	private readonly showRemoteBranchesElem: HTMLInputElement;
+	private readonly hideArchivedBranchesElm: HTMLInputElement;
 	private readonly refreshBtnElem: HTMLElement;
 
 	constructor(viewElem: HTMLElement, prevState: WebViewState | null) {
@@ -103,6 +104,12 @@ class GitGraphView {
 		this.showRemoteBranchesElem = <HTMLInputElement>document.getElementById('showRemoteBranchesCheckbox')!;
 		this.showRemoteBranchesElem.addEventListener('change', () => {
 			this.saveRepoStateValue(this.currentRepo, 'showRemoteBranchesV2', this.showRemoteBranchesElem.checked ? GG.BooleanOverride.Enabled : GG.BooleanOverride.Disabled);
+			this.refresh(true);
+		});
+
+		this.hideArchivedBranchesElm = <HTMLInputElement>document.getElementById('hideArchivedBranchesCheckbox')!;
+		this.hideArchivedBranchesElm.addEventListener('change', () => {
+			this.saveRepoStateValue(this.currentRepo, 'HideArchivedBranches', this.hideArchivedBranchesElm.checked);
 			this.refresh(true);
 		});
 
@@ -562,7 +569,11 @@ class GitGraphView {
 			options.push({ name: 'Glob: ' + this.config.customBranchGlobPatterns[i].name, value: this.config.customBranchGlobPatterns[i].glob });
 		}
 		for (let i = 0; i < this.gitBranches.length; i++) {
-			if (!this.gitBranches[i].includes('archived')) {
+			if (this.gitRepos[this.currentRepo].HideArchivedBranches) {
+				if (!this.gitBranches[i].includes('archived')) {
+					options.push({ name: this.gitBranches[i].indexOf('remotes/') === 0 ? this.gitBranches[i].substring(8) : this.gitBranches[i], value: this.gitBranches[i] });
+				}
+			} else {
 				options.push({ name: this.gitBranches[i].indexOf('remotes/') === 0 ? this.gitBranches[i].substring(8) : this.gitBranches[i], value: this.gitBranches[i] });
 			}
 		}
@@ -654,6 +665,7 @@ class GitGraphView {
 			maxCommits: this.maxCommits,
 			showTags: getShowTags(repoState.showTags),
 			showRemoteBranches: getShowRemoteBranches(repoState.showRemoteBranchesV2),
+			hideArchivedBranches: repoState.HideArchivedBranches,
 			includeCommitsMentionedByReflogs: getIncludeCommitsMentionedByReflogs(repoState.includeCommitsMentionedByReflogs),
 			onlyFollowFirstParent: getOnlyFollowFirstParent(repoState.onlyFollowFirstParent),
 			commitOrdering: getCommitOrdering(repoState.commitOrdering),
